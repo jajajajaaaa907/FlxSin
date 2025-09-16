@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NtaHost Tt Downloader</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4faff;
+      color: #1a1a1a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 400px;
+    }
+
+    h1 {
+      color: #007BFF;
+      margin-bottom: 20px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    button {
+      background: #007BFF;
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    #status {
+      margin-top: 15px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>NtaHost Tt Downloader</h1>
+    <form id="downloadForm" method="POST" action="/download">
+      <input type="text" name="url" placeholder="Paste TikTok link here..." required>
+      
+      <select name="format">
+        <option value="mp4">MP4</option>
+        <option value="mp4hd">MP4 (HD)</option>
+        <option value="mp3">MP3</option>
+      </select>
+
+      <label class="toggle">
+        <input type="checkbox" name="upscale" id="upscale">
+        <span>Enable Upscale</span>
+      </label>
+
+      <button type="submit">Download</button>
+    </form>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    document.getElementById("downloadForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      formData.set("upscale", document.getElementById("upscale").checked);
+
+      const statusDiv = document.getElementById("status");
+      statusDiv.innerHTML = "Processing... Please wait.";
+
+      fetch("/download", {
+        method: "POST",
+        body: formData
+      }).then(response => {
+        if (response.ok) {
+          return response.blob();
+        } else {
+          return response.json().then(err => { throw new Error(err.error); });
+        }
+      }).then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "downloaded_file";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        statusDiv.innerHTML = "✅ Download complete!";
+      }).catch(err => {
+        statusDiv.innerHTML = "❌ Error: " + err.message;
+      });
+    });
+  </script>
+</body>
+</html>
